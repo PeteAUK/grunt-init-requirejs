@@ -15,14 +15,8 @@ exports.description = 'Create a RequireJS based project';
 exports.notes = '';
 
 // Template-specific notes to be displayed after question prompts.
-exports.after = 'You must now install the project dependecies using the ' +
-	'_npm install_ command.  Once this has run, you will have the full ' +
-	'range of _grunt_ commands.  See:\n\n' +
-	'https://github.com/PeteAUK/grunt-init-requirejs' + 
-	'\nFor _grunt_ commands from this template and' + 
-	'\n\n' +
-	'http://gruntjs.com/getting-started' + 
-	'\nFor more information about installing and configuring Grunt';
+exports.after = 'You may now use the _grunt_ commands as found at :\n\n' +
+	'https://github.com/PeteAUK/grunt-init-requirejs';
 
 // Any existing file or directory matching this wildcard will cause a warning.
 exports.warnOn = '*';
@@ -51,6 +45,11 @@ exports.template = function(grunt, init, done) {
 			default: '9999',
 			validator: /^\d+$/,
 			warning: 'Must be only numbers'
+		},
+		{
+			name: 'npm_install',
+			message: 'Automatically install npm modules?',
+			default: 'Y/n'
 		}
 	  ], function(err, props) {
 		props.keywords = [];
@@ -86,10 +85,26 @@ exports.template = function(grunt, init, done) {
 		init.copyAndProcess(files, props);
 
 		// Generate package.json file.
-		init.writePackageJSON('package.json', props);
-
-		// All done!
-		done();
+		init.writePackageJSON('package.json', props, function(pkg) {
+			// Ensure the custom values are stored within the package.json file
+			pkg.local_port = props.local_port;
+			return pkg;
+		});
+		
+		// Install everything using npm install
+		if (props.npm_install.toLowerCase() === 'y' || props.npm_install === 'Y/n') {
+			grunt.log.writeln('grunt-init will now install all node dependencies (may take a while)...');
+			var exec = require('child_process').exec;
+			exec('npm install', function(err, stdout, stderr) {
+				//console.log(stdout);
+				if (err !== null)
+					console.log('exec error: ' + err)
+				
+				done();
+			});
+		} else {
+			// All done!
+			done();
+		}
 	});
-
 };

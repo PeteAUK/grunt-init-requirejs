@@ -1,12 +1,13 @@
 'use strict';
 
 module.exports = function(grunt) {
-	var libFolder = <%= pkg.main.toString().split('/')[0];
+	var pkg = grunt.file.readJSON('package.json'),
+		libFolder = pkg.main.toString().split('/')[0];
 
 	// Project configuration.
 	grunt.initConfig({
 		// Metadata.
-		pkg: grunt.file.readJSON('package.json'),
+		pkg: pkg,
 		banner: '/*! <%= pkg.name %> - v<%= pkg.version %> - ' +
 		  '<%= grunt.template.today("yyyy-mm-dd") %>\n' +
 		  '<%= pkg.homepage ? "* " + pkg.homepage + "\\n" : "" %>' +
@@ -71,7 +72,7 @@ module.exports = function(grunt) {
 				options: {
 					almond: true,
 					wrap: true,
-					insertRequire: ['main'],
+					/*insertRequire: ['main'], // Needed if you don't have a require(['main']) in your file*/
 					baseUrl: libFolder + '/',
 					include: ['main', '../node_modules/almond/almond.js'],
 					out: 'dist/main-build.js',
@@ -105,7 +106,7 @@ module.exports = function(grunt) {
 		connect = require('connect'),
 		app,
 		server,
-		port = <%= pkg.local_port %>
+		port = pkg.local_port;
 	
 	grunt.registerTask('dev', 'Starts a development server', function() {
 		var done = this.async();
@@ -121,7 +122,7 @@ module.exports = function(grunt) {
 		server
 			.listen(port)
 			.on('listening', function() {
-				grunt.log.writeln('Listening');
+				grunt.log.writeln('Listening on http://localhost:' + port);
 			})
 			.on('error', function(err) {
 				if (err.code === 'EADDRINUSE') {
@@ -130,7 +131,7 @@ module.exports = function(grunt) {
 					grunt.fatal(err);
 				}
 			});
-		
+		// Ensures that done is used and doesn't generate a jshint error
 		if (true === false) { done(); }
 	});
 };
